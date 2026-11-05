@@ -6,13 +6,13 @@ import re
 _UZ_CYRL_LETTERS = re.compile(r"[ўқғҳЎҚҒҲ]")
 _UZ_CYRL_WORDS = re.compile(
     r"\b(қанча|неча|нечта|йил\w*|қайси|битим\w*|шартнома\w*|вилоят\w*|бўйича|ким|қачон|нима|ва|учун|"
-    r"сотилган|сотиб|олинган|миқдори|суммаси|нархи|тонна|кўп|энг|ҳажми|бўлган|канча|кайси|буйича|компания\w*си)\b",
+    r"ассалому|алайкум|салом|раҳмат|рахмат|сотилган|сотиб|олинган|миқдори|суммаси|нархи|тонна|кўп|энг|ҳажми|бўлган|канча|кайси|буйича|компания\w*си)\b",
     re.I,
 )
 _UZ_LAT = re.compile(
     r"(o[‘’'ʻ`]|g[‘’'ʻ`])|\b(qancha|nechta|necha|qaysi|yil\w*|bitim\w*|shartnoma\w*|viloyat\w*|bo[‘’'ʻ`]?yicha|"
     r"kim|qachon|nima|uchun|sotilgan|sotib|eng|ko[‘’'ʻ`]p|hajmi|summasi|narxi|kompaniya\w*|ma[‘’'ʻ`]lumot|"
-    r"brokeri?|xaridor\w*|sotuvchi\w*|holat\w*|bekor|to[‘’'ʻ`]lov|muddati|o[‘’'ʻ`]rtacha|jami|umumiy|"
+    r"salom|assalomu|alaykum|rahmat|brokeri?|xaridor\w*|sotuvchi\w*|holat\w*|bekor|to[‘’'ʻ`]lov|muddati|o[‘’'ʻ`]rtacha|jami|umumiy|"
     r"paxta|sement|bug[‘’'ʻ`]?doy|tonna|qilingan|bo[‘’'ʻ`]lgan|mavjud|haqida|qaysi|ichida|bilan|dan|da)\b"
     r"|\d{4}-yil",
     re.I,
@@ -34,6 +34,8 @@ def detect(text: str) -> str:
         if strong or len(words) >= 2:
             return "uz-cyrl"
         return "ru"
-    if n_lat > 0 and _UZ_LAT.search(t):
+    if n_lat > 0:
+        # латиница без кириллицы — это узбекский (русский латиницей не пишут; языки бота: ru | uz | uz-cyrl).
+        # «salom», «assalomu alaykum», «XUSIT POLIMER» -> uz
         return "uz"
     return "ru"

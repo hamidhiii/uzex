@@ -96,6 +96,8 @@ def test_resolve_region(text, uz):
     ("2025 йилда қанча битим тузилган?", "uz-cyrl"),
     ("Пахта бўйича энг кўп сотувчи ким?", "uz-cyrl"),
     ("Неча битим бекор килинган 2024 йилда?", "uz-cyrl"),
+    ("salom", "uz"), ("assalomu alaykum", "uz"), ("nima gap", "uz"), ("XUSIT POLIMER", "uz"),
+    ("Привет", "ru"), ("Сколько сделок у XUSIT POLIMER?", "ru"), ("ассалому алайкум", "uz-cyrl"),
 ])
 def test_lang(q, lang):
     assert detect(q) == lang
