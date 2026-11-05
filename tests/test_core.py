@@ -98,6 +98,8 @@ def test_resolve_region(text, uz):
     ("Неча битим бекор килинган 2024 йилда?", "uz-cyrl"),
     ("salom", "uz"), ("assalomu alaykum", "uz"), ("nima gap", "uz"), ("XUSIT POLIMER", "uz"),
     ("Привет", "ru"), ("Сколько сделок у XUSIT POLIMER?", "ru"), ("ассалому алайкум", "uz-cyrl"),
+    ("нима гап", "uz-cyrl"), ("нима кивоссан", "uz-cyrl"), ("салом", "uz-cyrl"), ("как дела", "ru"),
+    ("Ким покупатель по сделке 280092?", "ru"), ("Цемент", "ru"), ("Какая средняя цена пшеницы?", "ru"),
 ])
 def test_lang(q, lang):
     assert detect(q) == lang
