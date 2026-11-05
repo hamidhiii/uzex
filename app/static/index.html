@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UZEX · Реестр сделок</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#14171c; --muted:#5d6673; --line:#e3e6eb; --accent:#0b6bcb; --accent-ink:#fff;
+  --user:#0b6bcb; --user-ink:#fff; --bot:#ffffff; --code:#f1f3f6; --ok:#137a3a; --ok-bg:#e7f5ec; --info:#1d5fa8; --info-bg:#e8f0fb;
+  --warn:#9a5b00; --warn-bg:#fdf2e1; --err:#b42318; --err-bg:#fdecea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1216; --panel:#171b21; --ink:#e7eaee; --muted:#9aa3ae; --line:#2a3039; --accent:#4c9cf0; --accent-ink:#06121f;
+    --user:#2a5b8f; --user-ink:#f1f6fc; --bot:#1c2128; --code:#11151a; --ok:#58c47f; --ok-bg:#12291b; --info:#7fb2ef; --info-bg:#132235;
+    --warn:#e7a94a; --warn-bg:#2b2112; --err:#f08b80; --err-bg:#2e1715;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --panel:#171b21; --ink:#e7eaee; --muted:#9aa3ae; --line:#2a3039; --accent:#4c9cf0; --accent-ink:#06121f;
+  --user:#2a5b8f; --user-ink:#f1f6fc; --bot:#1c2128; --code:#11151a; --ok:#58c47f; --ok-bg:#12291b; --info:#7fb2ef; --info-bg:#132235;
+  --warn:#e7a94a; --warn-bg:#2b2112; --err:#f08b80; --err-bg:#2e1715;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;margin:0;font-weight:650;letter-spacing:.2px}
+header .sub{color:var(--muted);font-size:13px}
+header .sp{flex:1}
+button.icon{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:calc(100% - 57px)}
+#chatcol{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
+#chat{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:92%;padding:10px 14px;border-radius:12px;white-space:normal;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--user);color:var(--user-ink);border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--bot);border:1px solid var(--line);border-bottom-left-radius:4px;cursor:pointer}
+.msg.bot.active{outline:2px solid var(--accent);outline-offset:1px}
+.msg p{margin:0 0 6px}.msg p:last-child{margin:0}
+.msg ol,.msg ul{margin:4px 0 6px;padding-left:22px}
+.meta{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.badge{padding:2px 8px;border-radius:999px;font-weight:600}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}.badge.no_data{background:var(--info-bg);color:var(--info)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.error{background:var(--err-bg);color:var(--err)}
+.thinking{color:var(--muted);font-style:italic}
+.thinking::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4,end) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+#composer{border-top:1px solid var(--line);padding:12px 16px;background:var(--panel)}
+form{display:flex;gap:8px}
+textarea{flex:1;resize:none;height:46px;max-height:140px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+button.send{border:0;border-radius:10px;padding:0 18px;background:var(--accent);color:var(--accent-ink);font-weight:650;cursor:pointer}
+button.send:disabled{opacity:.5;cursor:default}
+#examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+#examples button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer;text-align:left}
+#examples button:hover{border-color:var(--accent)}
+#evcol{overflow:auto;padding:16px;background:var(--bg)}
+#evcol h2{font-size:14px;margin:0 0 12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.empty{color:var(--muted);font-size:14px}
+.ev{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.ev .h{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px}
+.ev .h .n{margin-left:auto;color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap}
+.ev pre{margin:0;padding:10px 12px;background:var(--code);font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;position:relative}
+.ev .copy{position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.tw{overflow:auto;max-height:320px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.msg table{margin:6px 0;font-size:12.5px}
+@media (max-width: 820px){
+  main{display:block;height:auto}
+  header .sub{display:none}
+  #chatcol{border-right:0;min-height:70vh}
+  #chat{max-height:none}
+  #evcol{border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>UZEX · Реестр сделок</h1>
+  <span class="sub">ИИ-агент · ответы только по данным · RU / O‘zbek</span>
+  <span class="sp"></span>
+  <button class="icon" id="theme" type="button" aria-label="Тема">◐</button>
+</header>
+<main>
+  <section id="chatcol">
+    <div id="chat" aria-live="polite"></div>
+    <div id="composer">
+      <form id="f">
+        <textarea id="q" placeholder="Вопрос о сделках… / Bitimlar haqida savol…" aria-label="Вопрос"></textarea>
+        <button class="send" id="send" type="submit">Спросить</button>
+      </form>
+      <div id="examples"></div>
+    </div>
+  </section>
+  <aside id="evcol">
+    <h2>Доказательства / Dalillar</h2>
+    <div id="ev"><p class="empty">Здесь появятся SQL-запросы и строки данных, на которых основан ответ. Нажмите на ответ, чтобы увидеть его основание.</p></div>
+  </aside>
+</main>
+<script>
+const EXAMPLES = [
+  "Сколько тонн цемента продано в Самаркандской области в 2025 году?",
+  "Топ-3 покупателя карбамида в 2023 году по сумме",
+  "Какая доля сделок аннулирована в 2025 году?",
+  "2024-yilda paxta xom ashyosi bo‘yicha bitimlar summasi qancha?",
+  "BK045 brokeri qaysi viloyatdan?",
+  "2025 йилда энг кўп битим тузган вилоят қайси?"
+];
+const $ = s => document.querySelector(s);
+const chat = $("#chat"), ev = $("#ev"), q = $("#q"), send = $("#send");
+const results = [];
+
+// theme
+(function(){
+  let t = null; try { t = localStorage.getItem("theme"); } catch(e) {}
+  if (t) document.documentElement.dataset.theme = t;
+  $("#theme").onclick = () => {
+    const cur = document.documentElement.dataset.theme ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const nx = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nx;
+    try { localStorage.setItem("theme", nx); } catch(e) {}
+  };
+})();
+
+EXAMPLES.forEach(x => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = x;
+  b.onclick = () => { q.value = x; ask(); };
+  $("#examples").appendChild(b);
+});
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function inline(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>"); }
+function md(text){
+  const lines = String(text || "").split("\n"); let html = "", i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    if (/^\s*\|.*\|\s*$/.test(l)) {           // таблица
+      const rows = []; while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(lines[i++]);
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const body = rows.filter(r => !/^\s*\|(\s*-+\s*\|)+\s*$/.test(r));
+      html += '<div class="tw"><table><thead><tr>' + cells(body[0]).map(c => "<th>"+inline(c)+"</th>").join("") + "</tr></thead><tbody>" +
+        body.slice(1).map(r => "<tr>" + cells(r).map(c => "<td>"+inline(c)+"</td>").join("") + "</tr>").join("") + "</tbody></table></div>";
+      continue;
+    }
+    if (/^\s*\d+[.)]\s+/.test(l)) {           // нумерованный список
+      html += "<ol>"; while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) html += "<li>" + inline(lines[i++].replace(/^\s*\d+[.)]\s+/, "")) + "</li>"; html += "</ol>"; continue;
+    }
+    if (/^\s*[-•*]\s+/.test(l)) {
+      html += "<ul>"; while (i < lines.length && /^\s*[-•*]\s+/.test(lines[i])) html += "<li>" + inline(lines[i++].replace(/^\s*[-•*]\s+/, "")) + "</li>"; html += "</ul>"; continue;
+    }
+    if (l.trim()) html += "<p>" + inline(l) + "</p>";
+    i++;
+  }
+  return html;
+}
+const fmt = v => {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number") return v.toLocaleString("ru-RU", {maximumFractionDigits: 4});
+  if (typeof v === "boolean") return v ? "да" : "нет";
+  return String(v);
+};
+
+function renderEvidence(idx){
+  document.querySelectorAll(".msg.bot").forEach(m => m.classList.toggle("active", +m.dataset.idx === idx));
+  const r = results[idx]; ev.innerHTML = "";
+  if (!r || !r.evidence || !r.evidence.length) {
+    ev.innerHTML = (r && r.status === 'error')
+      ? '<p class="empty">Ответ не получен — запросов к данным не было. / Javob olinmadi — ma’lumotlarga so‘rov bo‘lmadi.</p>'
+      : '<p class="empty">Для этого ответа запросы к данным не понадобились (сработала предпроверка: период или тема вне реестра).</p>';
+    return;
+  }
+  r.evidence.forEach((e, k) => {
+    const d = document.createElement("div"); d.className = "ev";
+    d.innerHTML = `<div class="h"><span>${k+1}. ${esc(e.title || "")}</span><span class="n">${e.row_count} стр.</span></div>
+      <pre><button class="copy" type="button">Копировать</button>${esc(e.sql || "")}</pre>
+      <div class="tw"><table><thead><tr>${(e.columns||[]).map(c => "<th>"+esc(c)+"</th>").join("")}</tr></thead>
+      <tbody>${(e.rows||[]).map(row => "<tr>" + row.map(c => `<td class="${typeof c==="number"?"num":""}">${esc(fmt(c))}</td>`).join("") + "</tr>").join("")}</tbody></table></div>`;
+    d.querySelector(".copy").onclick = ev2 => {
+      navigator.clipboard && navigator.clipboard.writeText(e.sql || "").then(() => { ev2.target.textContent = "Скопировано"; setTimeout(() => ev2.target.textContent = "Копировать", 1200); });
+    };
+    ev.appendChild(d);
+  });
+}
+
+function badge(r){
+  if (r.status === "error") return '<span class="badge error">⚠️ ошибка</span>';
+  if (r.status === "no_data") return '<span class="badge no_data">ℹ️ нет данных</span>';
+  return r.verified ? '<span class="badge ok">✅ проверено</span>' : '<span class="badge warn">⚠️ не проверено</span>';
+}
+
+function add(cls, html){ const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
+
+async function ask(){
+  const text = q.value.trim(); if (!text || send.disabled) return;
+  add("user", esc(text)); q.value = ""; send.disabled = true;
+  const wait = add("bot", '<span class="thinking">Считаю по данным / Hisoblayapman</span>');
+  try {
+    const resp = await fetch("ask", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({question: text, user_id: "web"})});
+    const r = await resp.json(); const idx = results.push(r) - 1;
+    wait.dataset.idx = idx;
+    wait.innerHTML = md(r.answer) + `<div class="meta">${badge(r)}<span>${(r.elapsed_ms/1000).toFixed(1)} с</span><span>${esc(r.lang)}</span>${r.evidence && r.evidence.length ? "<span>· основание →</span>" : ""}</div>`;
+    wait.onclick = () => renderEvidence(idx);
+    renderEvidence(idx);
+  } catch (e) {
+    wait.innerHTML = '<p>Сервер недоступен. Попробуйте ещё раз.</p><div class="meta"><span class="badge error">⚠️ ошибка</span></div>';
+  } finally { send.disabled = false; q.focus(); chat.scrollTop = chat.scrollHeight; }
+}
+$("#f").onsubmit = e => { e.preventDefault(); ask(); };
+q.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } });
+</script>
+</body>
+</html>

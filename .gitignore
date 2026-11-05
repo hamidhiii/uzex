@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+logs/
+data/*.csv
+data/*.duckdb
+data/*.duckdb.tmp
+data/*.wal
+.pytest_cache/
+.DS_Store
+.idea/
+.claude/
+eval/report_*.md
+data/uzex_p2.duckdb
+bot/logs/

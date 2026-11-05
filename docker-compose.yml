@@ -1,0 +1,28 @@
+services:
+  agent:
+    build: .
+    restart: always
+    env_file: .env
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - PORT=8000
+      - WORKERS=2
+    volumes:
+      - ./data:/app/data:ro
+      - ./logs:/app/logs
+
+  # Telegram-бот (участник 1): тонкий клиент к POST /ask. Токен — в bot/.env.
+  bot:
+    build: ./bot
+    restart: always
+    env_file:
+      - path: bot/.env
+        required: false   # без файла compose не падает, если поднимаем только agent (SKIP_BOT=1)
+    environment:
+      - API_URL=http://agent:8000
+      - API_TIMEOUT=85
+    depends_on:
+      - agent
+    volumes:
+      - ./logs/bot:/bot/logs
